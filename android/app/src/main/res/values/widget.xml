@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cores do widget: paleta pêssego do app -->
+    <color name="widget_fundo">#FFF6EC</color>
+    <color name="widget_cartao">#FFFFFF</color>
+    <color name="widget_linha">#C9753F</color>
+    <color name="widget_destaque">#F4B27F</color>
+    <color name="widget_destaque_suave">#FDE3CC</color>
+    <color name="widget_agua">#A9D8F5</color>
+    <color name="widget_texto">#4B3F5C</color>
+    <color name="widget_suave">#8A7F99</color>
+
+    <!-- Linha de tarefa do widget (tocar conclui ou reabre, RN32) -->
+    <style name="WidgetTarefa">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_marginTop">3dp</item>
+        <item name="android:background">@drawable/widget_linha_tarefa</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:textColor">@color/widget_texto</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- "+N no app" quando há mais tarefas do que cabem -->
+    <style name="WidgetMais">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:visibility">gone</item>
+        <item name="android:textColor">@color/widget_suave</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <string name="widget_pequeno_desc">Copo d\'água com +250 ml</string>
+    <string name="widget_medio_desc">Copo d\'água e 3 tarefas de hoje</string>
+    <string name="widget_faixa_desc">Faixa pra tela de bloqueio: próxima tarefa e água</string>
+    <string name="widget_grande_desc">Seu dia: gatinha, tarefas e água</string>
+</resources>

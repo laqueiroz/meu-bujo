@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/raiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_fundo"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:id="@+id/agua"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_weight="2"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/agua_nome"
+            android:text="Beber água"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/widget_texto"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ProgressBar
+            android:id="@+id/agua_barra"
+            android:progress="50"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:layout_marginTop="6dp"
+            android:max="100"
+            android:progressDrawable="@drawable/widget_barra" />
+
+        <TextView
+            android:id="@+id/agua_texto"
+            android:text="1 de 2 L"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textColor="@color/widget_texto"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/agua_mais"
+        android:text="+ 0,25 L"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/widget_botao"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/widget_texto"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="3"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="hoje"
+            android:textColor="@color/widget_suave"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/vazio"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nenhuma tarefa ♡"
+            android:textColor="@color/widget_suave"
+            android:textSize="14sp" />
+
+        <TextView android:id="@+id/t0" style="@style/WidgetTarefa" android:text="•   Ler artigo do mestrado" />
+        <TextView android:id="@+id/t1" style="@style/WidgetTarefa" android:text="•   Mercado" />
+        <TextView android:id="@+id/t2" style="@style/WidgetTarefa" android:text="✓   Pagar conta de luz" android:textColor="@color/widget_suave" />
+        <TextView android:id="@+id/mais" style="@style/WidgetMais" />
+    </LinearLayout>
+</LinearLayout>

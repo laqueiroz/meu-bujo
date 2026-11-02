@@ -1,0 +1,28 @@
+/flutter/
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+*.iml
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
+android/.gradle/
+android/local.properties
+android/key.properties
+
+# Configuração pessoal do Google (o modelo é lib/config_google.exemplo.dart)
+lib/config_google.dart
+
+# Arquivos gerados e locais
+*.apk
+*.aab
+*.jks
+*.keystore
+.metadata
+.flutter-plugins-dependencies
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
