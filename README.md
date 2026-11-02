@@ -6,6 +6,15 @@ Um bullet journal fofo para Android, com uma gatinha que reage ao que você faz.
 
 Tarefas, eventos e hábitos num lugar só, no estilo do bullet journal (`•` tarefa, `○` evento, `×` feita, `>` migrada), com backup no Google Drive, sincronização com o Google Agenda e widgets na tela inicial e na tela de bloqueio.
 
+<p align="center">
+  <img src="docs/prints/hoje.png" width="200" alt="Tela Hoje: eventos, tarefas com coleções e caixinhas de feito">
+  <img src="docs/prints/semana.png" width="200" alt="Tela Semana: foco da semana e os dias abertos">
+  <img src="docs/prints/habitos.png" width="200" alt="Tela Hábitos: sequência, porcentagem do mês e calendário">
+  <img src="docs/prints/futuro.png" width="200" alt="Future log: itens guardados para os próximos meses">
+</p>
+
+<sub>Prints feitos com dados de exemplo (modo demonstração).</sub>
+
 ## O que o app faz
 
 | Área | O que tem |
@@ -90,6 +99,16 @@ Precisa de um projeto seu no [Google Cloud](https://console.cloud.google.com):
 4. Crie um cliente **Aplicativo da Web** e cole o **ID do cliente** em `lib/config_google.dart`. A chave secreta do cliente não é usada e não deve ir para o código.
 
 O `lib/config_google.dart` fica fora do git, então o seu ID não vai para o repositório.
+
+### Modo demonstração
+
+Para ver o app já cheio de dados de exemplo (foi assim que os prints foram feitos), rode com:
+
+```bash
+flutter run --dart-define=DEMO=true
+```
+
+Com a variável de ambiente `MEUBUJO_DEMO=1`, o build instala como um app separado (`com.meubujo.meu_bujo.demo`), sem misturar com os seus dados.
 
 ### Ícone
 

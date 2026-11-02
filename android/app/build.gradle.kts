@@ -29,6 +29,8 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Modo demonstração (prints do README): instala ao lado do app de verdade, sem misturar dados.
+        if (System.getenv("MEUBUJO_DEMO") == "1") applicationIdSuffix = ".demo"
     }
 
     buildTypes {

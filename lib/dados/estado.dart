@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../tema.dart';
 import '../widgets/gatinha.dart';
 import 'agenda.dart';
+import 'demonstracao.dart';
 import 'widget_casa.dart';
 import 'modelos.dart';
 import 'notificacoes.dart';
@@ -91,6 +92,7 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
     _prefs = await SharedPreferences.getInstance();
     final bruto = _prefs!.getString(_chave);
     if (bruto == null) {
+      if (modoDemonstracao) return preencherExemplo(this);
       habitos = [
         Habito(nome: 'Beber água', tipo: TipoHabito.meta, meta: 2, unidade: 'L'),
         Habito(nome: 'Ler 20 min'),
