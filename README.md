@@ -1,5 +1,7 @@
 # Meu Bujo 🐱
 
+**Meu Bujo** quer dizer **Meu Bullet Journal** ("bujo" é o apelido que a comunidade de bullet journal usa para o caderno).
+
 Um bullet journal fofo para Android, com uma gatinha que reage ao que você faz. Feito em **Flutter**.
 
 Tarefas, eventos e hábitos num lugar só, no estilo do bullet journal (`•` tarefa, `○` evento, `×` feita, `>` migrada), com backup no Google Drive, sincronização com o Google Agenda e widgets na tela inicial e na tela de bloqueio.
