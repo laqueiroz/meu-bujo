@@ -89,7 +89,14 @@ class _TelaSemanaState extends State<TelaSemana> {
               tamanho: 62,
               onTap: e.fazerCarinho,
             ),
-            Expanded(child: _mes ? _corpoMes(context, e) : _corpoSemana(context, e)),
+            Expanded(
+              child: RefreshIndicator(
+                color: context.cores.linha,
+                backgroundColor: context.cores.cartao,
+                onRefresh: e.atualizarAgora, // puxar pra atualizar
+                child: _mes ? _corpoMes(context, e) : _corpoSemana(context, e),
+              ),
+            ),
           ]),
         ),
       ),
@@ -113,7 +120,7 @@ class _TelaSemanaState extends State<TelaSemana> {
       _focoDe = chave;
       _foco.text = e.focoDaSemana(_semana);
     }
-    return ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
+    return ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
       Cartao(
         cor: c.segundaSuave,
         sombra: false,
@@ -254,7 +261,7 @@ class _TelaSemanaState extends State<TelaSemana> {
     final eventos = e.eventosDoDia(d);
     final tarefas = e.tarefasDoDia(d);
     final metas = e.metasDoMes(_mesAtual);
-    return ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
+    return ListView(physics: const AlwaysScrollableScrollPhysics(), padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
       Cartao(
         padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
         child: Column(children: [

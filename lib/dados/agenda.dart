@@ -21,6 +21,17 @@ class Agenda {
     return cal.CalendarApi(cli);
   }
 
+  /// Acha a agenda com esse nome entre as da conta; se não existir, cria (é a usuária a dona).
+  Future<String> acharOuCriarAgenda(String nome, {required String fuso}) async {
+    final api = await _api();
+    final r = await _chamar(() => api.calendarList.list(minAccessRole: 'owner'));
+    for (final a in r.items ?? <cal.CalendarListEntry>[]) {
+      if (a.summary == nome && a.id != null) return a.id!;
+    }
+    final nova = await _chamar(() => api.calendars.insert(cal.Calendar(summary: nome, timeZone: fuso)));
+    return nova.id!;
+  }
+
   /// Lista as agendas da conta (UC22 passo 1).
   Future<List<AgendaGoogle>> listarAgendas({bool podePerguntar = false}) async {
     final api = await _api(podePerguntar: podePerguntar);
@@ -102,7 +113,10 @@ class ItemParaGoogle {
   final String? hora;
   final int duracaoMin;
 
-  ItemParaGoogle({required this.bujoId, required this.ehTarefa, required this.titulo, required this.data, this.hora, this.duracaoMin = 60});
+  /// Não ocupa horário na agenda (tarefas da agenda "Bujo – Tarefas").
+  final bool transparente;
+
+  ItemParaGoogle({required this.bujoId, required this.ehTarefa, required this.titulo, required this.data, this.hora, this.duracaoMin = 60, this.transparente = false});
 
   factory ItemParaGoogle.daTarefa(Tarefa t) => ItemParaGoogle(
         bujoId: t.id,
@@ -191,6 +205,7 @@ cal.Event eventoDoItem(ItemParaGoogle item) {
     end: fim,
     // RN23: só o app avisa
     reminders: cal.EventReminders(useDefault: false, overrides: []),
+    transparency: item.transparente ? 'transparent' : null,
     extendedProperties: cal.EventExtendedProperties(private: {'meuBujo': item.ehTarefa ? 'tarefa' : 'evento', 'bujoId': item.bujoId}),
   );
 }

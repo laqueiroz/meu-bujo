@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../dados/estado.dart';
 import '../dados/modelos.dart';
+import '../dados/tarefas_google.dart';
 import '../tema.dart';
 import '../widgets/comuns.dart';
 import '../widgets/gatinha.dart';
@@ -34,7 +35,7 @@ class _TelaAgendasState extends State<TelaAgendas> {
   }
 
   void _salvar(EstadoApp e) {
-    final marcadas = _agendas.where((a) => a.marcada).toList();
+    final marcadas = _agendas.where((a) => a.marcada && !e.ehAgendaDeTarefas(a.id)).toList();
     final destino = marcadas.any((a) => a.id == _destino) ? _destino : (marcadas.isEmpty ? null : marcadas.first.id);
     e.salvarAgendas(_agendas, destino);
     Navigator.pop(context);
@@ -44,7 +45,9 @@ class _TelaAgendasState extends State<TelaAgendas> {
   Widget build(BuildContext context) {
     final e = context.watch<EstadoApp>();
     final c = context.cores;
-    final marcadas = _agendas.where((a) => a.marcada).toList();
+    // a "Bujo – Tarefas" não é escolha da usuária: fica sempre ligada e aparece à parte
+    final escolhiveis = _agendas.where((a) => !e.ehAgendaDeTarefas(a.id)).toList();
+    final marcadas = escolhiveis.where((a) => a.marcada).toList();
     return Scaffold(
       body: FundoPontilhado(
         child: SafeArea(
@@ -77,9 +80,22 @@ class _TelaAgendasState extends State<TelaAgendas> {
             Expanded(
               child: ListView(padding: const EdgeInsets.fromLTRB(20, 4, 20, 24), children: [
                 const TituloSecao('agendas da sua conta'),
-                if (_agendas.isEmpty)
+                if (e.agendaTarefasId != null) ...[
+                  Cartao(
+                    cor: c.destaqueSuave,
+                    sombra: false,
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(TaskSyncService.nomeAgenda, style: corpo(context)),
+                      const SizedBox(height: 4),
+                      Text('Suas tarefas vão pra essa agenda, como eventos de dia inteiro. Tarefa feita ganha "✓ " no título.',
+                          style: corpo(context, tamanho: 13, peso: FontWeight.w600, cor: c.textoSuave)),
+                    ]),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (escolhiveis.isEmpty)
                   Cartao(child: Text('Nenhuma agenda encontrada. Toque em ↻ pra buscar de novo.', style: corpo(context, cor: c.textoSuave))),
-                for (final a in _agendas) ...[
+                for (final a in escolhiveis) ...[
                   Cartao(
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(children: [
@@ -107,7 +123,7 @@ class _TelaAgendasState extends State<TelaAgendas> {
                 ],
                 if (marcadas.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  const TituloSecao('o que eu anotar no app vai para'),
+                  const TituloSecao('eventos que eu anotar no app vão para'),
                   Cartao(
                     child: EscolhaUnica<String>(
                       opcoes: [for (final a in marcadas) a.id],

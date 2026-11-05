@@ -27,7 +27,7 @@ Tarefas, eventos e hábitos num lugar só, no estilo do bullet journal (`•` ta
 | **Coleções** | Mestrado, Trabalho, Casa…, cada uma com cor e progresso |
 | **Estatísticas** | Feitas, migradas e canceladas por semana ou mês, por coleção |
 | **Reflexão mensal** | Como foi o mês e o que fica para o próximo (vira meta) |
-| **Google** | Login, backup automático no Drive (pasta escondida do app) e Google Agenda nos dois sentidos, inclusive com o app fechado |
+| **Google** | Login, backup automático no Drive (pasta escondida do app) e Google Agenda nos dois sentidos, inclusive com o app fechado. As tarefas ficam numa agenda própria, "Bujo – Tarefas" (dia inteiro; feita = título com "✓ "), então qualquer ferramenta que lê o Google Agenda consegue ver e criar tarefas |
 | **Avisos** | Lembrete no horário de cada item e resumo do dia de manhã |
 | **Widgets** | Água, água e tarefas, "meu dia" e uma faixa para a tela de bloqueio |
 | **Visual** | 5 paletas pastel, tema claro e escuro, gatinha com 6 humores desenhada em código |

@@ -14,6 +14,7 @@ import 'modelos.dart';
 import 'notificacoes.dart';
 import 'nuvem.dart';
 import 'segundo_plano.dart';
+import 'tarefas_google.dart';
 
 /// Estado do app inteiro. Fica salvo no celular; com a conta Google, vai pro Drive e pra agenda.
 class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
@@ -59,6 +60,9 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
   // Google Calendar (UC22, UC23)
   List<AgendaGoogle> agendas = [];
   String? agendaDestino;
+
+  /// Agenda "Bujo – Tarefas": as tarefas novas vão pra ela (ver [TaskSyncService]).
+  String? agendaTarefasId;
   bool agendaConectada = false;
   bool agendaPrecisaAutorizar = false;
   bool sincronizandoAgenda = false;
@@ -74,6 +78,7 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
   List<ExclusaoPendente> perguntasExclusao = [];
 
   final _agenda = Agenda.instancia;
+  late final _tarefasGoogle = TaskSyncService(_agenda);
   Timer? _timerAgenda;
   Timer? _timerPeriodico;
 
@@ -127,6 +132,7 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
         'salvoEm': salvoEm.toIso8601String(),
         'agendas': agendas.map((a) => a.toJson()).toList(),
         'agendaDestino': agendaDestino,
+        'agendaTarefasId': agendaTarefasId,
         'lidaAte': _lidaAte.map((k, v) => MapEntry(k, v.toIso8601String())),
         'apagarNoGoogle': _apagarNoGoogle.map((x) => x.toJson()).toList(),
         'perguntasExclusao': perguntasExclusao.map((x) => x.toJson()).toList(),
@@ -154,6 +160,7 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
     salvoEm = DateTime.tryParse(j['salvoEm'] as String? ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
     agendas = lista('agendas').map(AgendaGoogle.fromJson).toList();
     agendaDestino = j['agendaDestino'] as String?;
+    agendaTarefasId = j['agendaTarefasId'] as String?;
     _lidaAte = ((j['lidaAte'] as Map?) ?? {}).map((k, v) => MapEntry(k as String, DateTime.parse(v as String)));
     _apagarNoGoogle = lista('apagarNoGoogle').map(ExclusaoPendente.fromJson).toList();
     perguntasExclusao = lista('perguntasExclusao').map(ExclusaoPendente.fromJson).toList();
@@ -408,7 +415,8 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
         }
       }
       agendas = novas;
-      if (!agendas.any((a) => a.id == agendaDestino)) agendaDestino = null;
+      _marcarAgendaDeTarefas();
+      if (!agendas.any((a) => a.id == agendaDestino) || agendaDestino == agendaTarefasId) agendaDestino = null;
       await _salvar();
       notifyListeners();
       return null;
@@ -426,8 +434,9 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
     final antes = {for (final a in agendasMarcadas) a.id};
     final primeiraVez = agendaDestino == null && antes.isEmpty;
     agendas = escolhas;
+    _marcarAgendaDeTarefas();
     final agora = {for (final a in agendasMarcadas) a.id};
-    agendaDestino = agora.contains(destino) ? destino : null;
+    agendaDestino = agora.contains(destino) && destino != agendaTarefasId ? destino : null;
 
     // A1: desmarcar tira os itens daquela agenda do app, sem apagar nada no Google
     for (final id in antes.difference(agora)) {
@@ -496,6 +505,13 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
         return ok = false;
       }
 
+      // 0. a agenda "Bujo – Tarefas" existe e está marcada como "vira tarefa"
+      if (agendaTarefasId == null) {
+        agendaTarefasId = await _tarefasGoogle.garantirAgenda();
+        _marcarAgendaDeTarefas();
+        mexeu = true;
+      }
+
       // 1. o que foi apagado no app sai do Google antes de ler (senão voltaria como item novo)
       for (final x in [..._apagarNoGoogle]) {
         await _agenda.apagar(x.agenda, x.googleId);
@@ -515,16 +531,30 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
           // E3: a agenda foi apagada no Google
           agendas.removeWhere((x) => x.id == a.id);
           if (agendaDestino == a.id) agendaDestino = null;
-          _tirarItensDaAgenda(a.id);
           _lidaAte.remove(a.id);
           mexeu = true;
-          reagir(Humor.preocupada, 'A agenda "${a.nome}" sumiu do Google. Tirei ela da lista.');
+          if (a.id == agendaTarefasId) {
+            // a de tarefas é recriada na próxima vez; as tarefas não somem do app, só voltam pra fila
+            agendaTarefasId = null;
+            for (final t in tarefas.where((t) => t.google?.agenda == a.id)) {
+              t
+                ..google = null
+                ..sujo = true;
+            }
+          } else {
+            _tirarItensDaAgenda(a.id);
+            reagir(Humor.preocupada, 'A agenda "${a.nome}" sumiu do Google. Tirei ela da lista.');
+          }
         }
       }
 
       // 3. o que mudou no app
       for (final s in <Sincronizavel>[...tarefas, ...eventos]) {
         if (!s.sujo || s.soNoApp) continue;
+        if (s is Tarefa && await _enviarParaAgendaDeTarefas(s)) {
+          mexeu = true;
+          continue;
+        }
         final item = s is Tarefa ? ItemParaGoogle.daTarefa(s) : ItemParaGoogle.doEvento(s as Evento);
         final l = s.google;
         if (l == null) {
@@ -558,6 +588,52 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
       if (mexeu) _agendarBackup();
     }
     return ok;
+  }
+
+  /// Puxar pra atualizar: sincroniza a agenda agora e a gatinha conta como foi.
+  Future<void> atualizarAgora() async {
+    if (!agendaConectada) return reagir(Humor.curiosa, 'Conecte o Google Agenda em Ajustes pra sincronizar.');
+    final ok = await sincronizarAgenda();
+    reagir(ok ? Humor.comemorando : Humor.preocupada, ok ? 'Tudo em dia com o Google ♡' : 'Não deu agora. Guardei aqui e tento de novo depois.');
+  }
+
+  /// A agenda "Bujo – Tarefas" fica sempre marcada e sempre "vira tarefa" (não é a usuária que escolhe).
+  void _marcarAgendaDeTarefas() {
+    final id = agendaTarefasId;
+    if (id == null) return;
+    final a = agendas.where((x) => x.id == id).firstOrNull;
+    if (a == null) {
+      agendas.add(AgendaGoogle(id: id, nome: TaskSyncService.nomeAgenda, marcada: true, viraTarefa: true));
+    } else {
+      a
+        ..marcada = true
+        ..viraTarefa = true;
+    }
+  }
+
+  bool ehAgendaDeTarefas(String? id) => id != null && id == agendaTarefasId;
+
+  /// Manda a tarefa pra "Bujo – Tarefas". Devolve false se ela segue o caminho antigo
+  /// (tarefa já ligada a outra agenda, ou agenda de tarefas ainda não criada).
+  Future<bool> _enviarParaAgendaDeTarefas(Tarefa t) async {
+    final destino = agendaTarefasId;
+    final l = t.google;
+    if (destino == null || (l != null && l.agenda != destino)) return false;
+    if (!TaskSyncService.ficaNaAgenda(t)) {
+      // cancelada: sai da agenda, continua riscada só no app
+      if (l != null) await _agenda.apagar(l.agenda, l.id);
+      t.google = null;
+    } else if (l == null) {
+      t.google = await _agenda.criar(destino, TaskSyncService.paraGoogle(t));
+    } else {
+      try {
+        await _agenda.atualizar(l, TaskSyncService.paraGoogle(t));
+      } on AgendaNaoEncontrada {
+        _perguntar(l, t, t.texto); // apagada no Google enquanto mudava aqui
+      }
+    }
+    t.sujo = false;
+    return true;
   }
 
   /// Por que a última sincronização falhou (pra diagnóstico).
@@ -594,6 +670,8 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
       return true;
     }
 
+    final daAgendaDeTarefas = ehAgendaDeTarefas(r.agenda);
+
     if (local != null) {
       // RN19: se o app mudou depois do Google, a versão do app vence (e vai pro Google em seguida)
       if (local.sujo && local.editadoEm.isAfter(r.atualizadoEm)) return false;
@@ -603,7 +681,8 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
         tarefa
           ..texto = texto
           ..status = status
-          ..hora = r.hora;
+          // na "Bujo – Tarefas" tudo é dia inteiro: o horário mora só no app
+          ..hora = daAgendaDeTarefas ? tarefa.hora : r.hora;
         if (tarefa.data != r.data) tarefa.data = r.data; // A4 do outro lado
         tarefa.aberta ? _avisos.agendarTarefa(tarefa) : _avisos.cancelar(tarefa.id);
       } else {
@@ -621,7 +700,8 @@ class EstadoApp extends ChangeNotifier with WidgetsBindingObserver {
 
     // item novo no Google: vira tarefa ou evento conforme a agenda (RN17), ou o tipo que tinha no app
     final ligacao = LigacaoGoogle(r.agenda, r.id, duracaoMin: r.duracaoMin);
-    final viraTarefa = r.tipoBujo == null ? agenda.viraTarefa : r.tipoBujo == 'tarefa';
+    // tudo da "Bujo – Tarefas" é tarefa, nunca evento
+    final viraTarefa = daAgendaDeTarefas || (r.tipoBujo == null ? agenda.viraTarefa : r.tipoBujo == 'tarefa');
     if (viraTarefa) {
       final (texto, status) = lerMarca(r.titulo);
       final t = Tarefa(texto: texto, data: r.data, hora: r.hora, status: status)

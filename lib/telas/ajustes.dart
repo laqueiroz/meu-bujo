@@ -120,7 +120,7 @@ class _TelaAjustesState extends State<TelaAjustes> {
           marcadas.isEmpty ? 'Nenhuma agenda marcada: nada sincroniza.' : marcadas.map((a) => a.nome).join(' · '),
           style: corpo(context),
         ),
-        if (destino != null) Text('Novos itens vão para: ${destino.nome}', style: corpo(context, tamanho: 13, peso: FontWeight.w600, cor: c.textoSuave)),
+        if (destino != null) Text('Eventos novos vão para: ${destino.nome} · tarefas: Bujo – Tarefas', style: corpo(context, tamanho: 13, peso: FontWeight.w600, cor: c.textoSuave)),
         const SizedBox(height: 10),
         Row(children: [
           e.sincronizandoAgenda
